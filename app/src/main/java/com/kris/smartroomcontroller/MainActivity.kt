@@ -24,6 +24,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ class MainActivity : ComponentActivity() {
 fun SmartRoomControllerApp() {
     var mode by remember { mutableStateOf("manual") }
     var selectedZone by remember { mutableStateOf("main_led") }
+    var customPayload by remember { mutableStateOf<String?>(null) }
 
     var ledOn by remember { mutableStateOf(false) }
     var brightness by remember { mutableStateOf(128f) }
@@ -54,13 +56,33 @@ fun SmartRoomControllerApp() {
     var green by remember { mutableStateOf(0f) }
     var blue by remember { mutableStateOf(0f) }
 
+    var mqttStatus by remember { mutableStateOf("MQTT: łączenie...") }
+
+    val mqttManager = remember {
+        MqttManager(
+            brokerHost = "192.168.233.198",
+            brokerPort = 1883
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        mqttManager.connect(
+            onConnected = {
+                mqttStatus = "MQTT: połączono"
+            },
+            onError = { error ->
+                mqttStatus = "MQTT: błąd - $error"
+            }
+        )
+    }
+
     val previewColor = Color(
         red = red.toInt(),
         green = green.toInt(),
         blue = blue.toInt()
     )
 
-    val jsonPayload = buildLedPayload(
+    val jsonPayload = customPayload ?: buildLedPayload(
         mode = mode,
         zone = selectedZone,
         power = ledOn,
@@ -86,8 +108,8 @@ fun SmartRoomControllerApp() {
             )
 
             Text(
-                text = "MQTT: tryb testowy / payload gotowy",
-                color = Color.Yellow
+                text = mqttStatus,
+                color = if (mqttStatus.contains("połączono")) Color.Green else Color.Yellow
             )
 
             ColorPreview(previewColor = previewColor)
@@ -99,26 +121,31 @@ fun SmartRoomControllerApp() {
                 green = green,
                 blue = blue,
                 onPowerChange = {
+                    customPayload = null
                     ledOn = it
                     mode = "manual"
                     selectedZone = "main_led"
                 },
                 onBrightnessChange = {
+                    customPayload = null
                     brightness = it
                     mode = "manual"
                     selectedZone = "main_led"
                 },
                 onRedChange = {
+                    customPayload = null
                     red = it
                     mode = "manual"
                     selectedZone = "main_led"
                 },
                 onGreenChange = {
+                    customPayload = null
                     green = it
                     mode = "manual"
                     selectedZone = "main_led"
                 },
                 onBlueChange = {
+                    customPayload = null
                     blue = it
                     mode = "manual"
                     selectedZone = "main_led"
@@ -126,23 +153,15 @@ fun SmartRoomControllerApp() {
             )
 
             SleepModeCard(
-                onUnderBed = {
-                    mode = "sleep_under_bed"
-                    selectedZone = "under_bed"
+                onFullSleep = {
+                    mode = "sleep_full"
+                    selectedZone = "all_sleep_zones"
                     ledOn = true
-                    brightness = 8f
+                    brightness = 15f
                     red = 255f
-                    green = 35f
+                    green = 50f
                     blue = 0f
-                },
-                onThreshold = {
-                    mode = "sleep_threshold"
-                    selectedZone = "threshold"
-                    ledOn = true
-                    brightness = 25f
-                    red = 255f
-                    green = 75f
-                    blue = 0f
+                    customPayload = buildSleepModePayload()
                 },
                 onReadingLamp = {
                     mode = "reading_lamp"
@@ -152,15 +171,7 @@ fun SmartRoomControllerApp() {
                     red = 255f
                     green = 110f
                     blue = 20f
-                },
-                onFullSleep = {
-                    mode = "sleep_full"
-                    selectedZone = "all_sleep_zones"
-                    ledOn = true
-                    brightness = 15f
-                    red = 255f
-                    green = 50f
-                    blue = 0f
+                    customPayload = buildReadingLampPayload()
                 },
                 onAllOff = {
                     mode = "all_off"
@@ -170,6 +181,7 @@ fun SmartRoomControllerApp() {
                     red = 0f
                     green = 0f
                     blue = 0f
+                    customPayload = buildAllOffPayload()
                 }
             )
 
@@ -182,8 +194,10 @@ fun SmartRoomControllerApp() {
                     red = 255f
                     green = 220f
                     blue = 160f
+                    customPayload = buildMorningPayload()
                 },
                 onStudio = {
+                    customPayload = null
                     mode = "studio"
                     selectedZone = "studio_lights"
                     ledOn = true
@@ -193,6 +207,7 @@ fun SmartRoomControllerApp() {
                     blue = 255f
                 },
                 onNight = {
+                    customPayload = null
                     mode = "night"
                     selectedZone = "main_led"
                     ledOn = true
@@ -206,6 +221,18 @@ fun SmartRoomControllerApp() {
             SensorsPreviewCard()
 
             JsonPreviewCard(jsonPayload = jsonPayload)
+
+            Button(
+                onClick = {
+                    mqttManager.publish(
+                        topic = "home/room/led/set",
+                        payload = jsonPayload
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Wyślij do MQTT")
+            }
         }
     }
 }
@@ -309,30 +336,21 @@ fun MainLedCard(
 
 @Composable
 fun SleepModeCard(
-    onUnderBed: () -> Unit,
-    onThreshold: () -> Unit,
-    onReadingLamp: () -> Unit,
     onFullSleep: () -> Unit,
+    onReadingLamp: () -> Unit,
     onAllOff: () -> Unit
 ) {
     SectionCard(title = "Tryb Sen") {
         Text(
-            text = "Ciepłe światło, niska jasność, bez telefonu przy łóżku.",
+            text = "Jeden klik: łóżko + próg. Ciepłe światło, niska jasność, bez telefonu przy łóżku.",
             color = Color.LightGray
         )
 
         Button(
-            onClick = onUnderBed,
+            onClick = onFullSleep,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Pod łóżkiem — bardzo nisko")
-        }
-
-        Button(
-            onClick = onThreshold,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Próg — trochę jaśniej")
+            Text("Tryb Sen — łóżko + próg")
         }
 
         Button(
@@ -340,13 +358,6 @@ fun SleepModeCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Wysuwana lampka do czytania")
-        }
-
-        Button(
-            onClick = onFullSleep,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Tryb Sen — wszystkie strefy")
         }
 
         Button(
@@ -448,6 +459,143 @@ fun buildLedPayload(
           "r": $red,
           "g": $green,
           "b": $blue
+        }
+    """.trimIndent()
+}
+
+fun buildSleepModePayload(): String {
+    return """
+        {
+          "mode": "sleep_full",
+          "zones": {
+            "under_bed": {
+              "power": true,
+              "brightness": 8,
+              "r": 255,
+              "g": 35,
+              "b": 0
+            },
+            "threshold": {
+              "power": true,
+              "brightness": 25,
+              "r": 255,
+              "g": 75,
+              "b": 0
+            },
+            "reading_lamp": {
+              "power": false,
+              "brightness": 0,
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          }
+        }
+    """.trimIndent()
+}
+
+fun buildReadingLampPayload(): String {
+    return """
+        {
+          "mode": "reading_lamp",
+          "zones": {
+            "under_bed": {
+              "power": true,
+              "brightness": 8,
+              "r": 255,
+              "g": 35,
+              "b": 0
+            },
+            "threshold": {
+              "power": true,
+              "brightness": 25,
+              "r": 255,
+              "g": 75,
+              "b": 0
+            },
+            "reading_lamp": {
+              "power": true,
+              "brightness": 70,
+              "r": 255,
+              "g": 110,
+              "b": 20
+            }
+          }
+        }
+    """.trimIndent()
+}
+
+fun buildMorningPayload(): String {
+    return """
+        {
+          "mode": "morning",
+          "sequence": [
+            {
+              "device": "main_power_supply",
+              "power": true,
+              "delayMs": 0
+            },
+            {
+              "device": "monitors",
+              "power": true,
+              "delayMs": 3000
+            },
+            {
+              "device": "audio_interface_microphones",
+              "power": true,
+              "delayMs": 5000
+            },
+            {
+              "device": "studio_monitors_krk",
+              "power": true,
+              "delayMs": 8000
+            }
+          ],
+          "led": {
+            "power": true,
+            "brightness": 180,
+            "r": 255,
+            "g": 220,
+            "b": 160
+          }
+        }
+    """.trimIndent()
+}
+
+fun buildAllOffPayload(): String {
+    return """
+        {
+          "mode": "all_off",
+          "zones": {
+            "under_bed": {
+              "power": false,
+              "brightness": 0,
+              "r": 0,
+              "g": 0,
+              "b": 0
+            },
+            "threshold": {
+              "power": false,
+              "brightness": 0,
+              "r": 0,
+              "g": 0,
+              "b": 0
+            },
+            "reading_lamp": {
+              "power": false,
+              "brightness": 0,
+              "r": 0,
+              "g": 0,
+              "b": 0
+            },
+            "main_led": {
+              "power": false,
+              "brightness": 0,
+              "r": 0,
+              "g": 0,
+              "b": 0
+            }
+          }
         }
     """.trimIndent()
 }

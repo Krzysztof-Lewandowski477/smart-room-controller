@@ -7,7 +7,14 @@ plugins {
 android {
     namespace = "com.kris.smartroomcontroller"
     compileSdk = 35
-
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties"
+            )
+        }
+    }
     defaultConfig {
         applicationId = "com.kris.smartroomcontroller"
         minSdk = 26
@@ -37,6 +44,14 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/INDEX.LIST",
+                "META-INF/io.netty.versions.properties"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -56,4 +71,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.14")
 }
