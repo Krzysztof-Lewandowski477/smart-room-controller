@@ -33,7 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
+import kotlinx.coroutines.delay
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,6 +91,25 @@ fun SmartRoomControllerApp() {
         green = green.toInt(),
         blue = blue.toInt()
     )
+    var firstAutoSendSkipped by remember { mutableStateOf(false) }
+
+    LaunchedEffect(jsonPayload) {
+        if (!firstAutoSendSkipped) {
+            firstAutoSendSkipped = true
+            return@LaunchedEffect
+        }
+
+        if (!mqttStatus.contains("połączono", ignoreCase = true)) {
+            return@LaunchedEffect
+        }
+
+        delay(350)
+
+        mqttManager.publish(
+            topic = "home/room/led/set",
+            payload = jsonPayload
+        )
+    }
 
     MaterialTheme {
         Column(
