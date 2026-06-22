@@ -92,3 +92,10 @@ The first stages focus on:
 * clear documentation
 
 Any future mechanical automation requires limit switches, emergency stop, manual override, proper power isolation and physical safety testing.
+
+Działa:
+Android Kotlin → MQTT → Node-RED → MQTT → ESP8266 → WS2812B.
+Auto-wysyłanie działa bez przycisku.
+RGB/brightness działa logicznie.
+Problem z pełną taśmą wynika z zasilania LED z płytki ESP — potrzebne osobne 5V i wspólna masa.
+
