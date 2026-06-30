@@ -7,7 +7,7 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient
 import java.nio.charset.StandardCharsets
 
 class MqttManager(
-    private val brokerHost: String = BuildConfig.MQTT_HOST,
+    private val brokerHost: String = gBuildConfig.MQTT_HOST,
     private val brokerPort: Int = BuildConfig.MQTT_PORT,
 ) {
     private val client: Mqtt3AsyncClient =

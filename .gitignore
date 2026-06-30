@@ -1,29 +1,51 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-# Android Studio / IntelliJ
-.idea/
-*.iml
-.idea/
-local.properties
+﻿# Gradle
 .gradle/
 build/
 */build/
-*.apk
-*.aab
-*.jks
-*.keystore
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Local config - never commit
+local.properties
 .env
 .env.*
+!*.env.example
+*.local
+
+# Android build outputs
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Signing keys - never commit
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated
+captures/
+.navigation/
+
+# Secrets / config
+secrets.properties
+secrets.json
+config.local.json
+mqtt_config.json
