@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SmartRoomControllerApp() {
     var mode by remember { mutableStateOf("manual") }
@@ -58,12 +60,13 @@ fun SmartRoomControllerApp() {
 
     var mqttStatus by remember { mutableStateOf("MQTT: łączenie...") }
 
-    val mqttManager = remember {
-        MqttManager(
-            brokerHost = "192.168.233.198",
-            brokerPort = 1883
-        )
-    }
+    val mqttManager =
+        remember {
+            MqttManager(
+                brokerHost = "192.168.233.198",
+                brokerPort = 1883,
+            )
+        }
 
     LaunchedEffect(Unit) {
         mqttManager.connect(
@@ -72,25 +75,27 @@ fun SmartRoomControllerApp() {
             },
             onError = { error ->
                 mqttStatus = "MQTT: błąd - $error"
-            }
+            },
         )
     }
 
-    val previewColor = Color(
-        red = red.toInt(),
-        green = green.toInt(),
-        blue = blue.toInt()
-    )
+    val previewColor =
+        Color(
+            red = red.toInt(),
+            green = green.toInt(),
+            blue = blue.toInt(),
+        )
 
-    val jsonPayload = customPayload ?: buildLedPayload(
-        mode = mode,
-        zone = selectedZone,
-        power = ledOn,
-        brightness = brightness.toInt(),
-        red = red.toInt(),
-        green = green.toInt(),
-        blue = blue.toInt()
-    )
+    val jsonPayload =
+        customPayload ?: buildLedPayload(
+            mode = mode,
+            zone = selectedZone,
+            power = ledOn,
+            brightness = brightness.toInt(),
+            red = red.toInt(),
+            green = green.toInt(),
+            blue = blue.toInt(),
+        )
     var firstAutoSendSkipped by remember { mutableStateOf(false) }
 
     LaunchedEffect(jsonPayload) {
@@ -107,28 +112,29 @@ fun SmartRoomControllerApp() {
 
         mqttManager.publish(
             topic = "home/room/led/set",
-            payload = jsonPayload
+            payload = jsonPayload,
         )
     }
 
     MaterialTheme {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF101010))
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF101010))
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
                 text = "Smart Room Controller",
                 color = Color.White,
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall,
             )
 
             Text(
                 text = mqttStatus,
-                color = if (mqttStatus.contains("połączono")) Color.Green else Color.Yellow
+                color = if (mqttStatus.contains("połączono")) Color.Green else Color.Yellow,
             )
 
             ColorPreview(previewColor = previewColor)
@@ -168,7 +174,7 @@ fun SmartRoomControllerApp() {
                     blue = it
                     mode = "manual"
                     selectedZone = "main_led"
-                }
+                },
             )
 
             SleepModeCard(
@@ -201,7 +207,7 @@ fun SmartRoomControllerApp() {
                     green = 0f
                     blue = 0f
                     customPayload = buildAllOffPayload()
-                }
+                },
             )
 
             MorningStudioCard(
@@ -234,7 +240,7 @@ fun SmartRoomControllerApp() {
                     red = 255f
                     green = 55f
                     blue = 0f
-                }
+                },
             )
 
             SensorsPreviewCard()
@@ -245,10 +251,10 @@ fun SmartRoomControllerApp() {
                 onClick = {
                     mqttManager.publish(
                         topic = "home/room/led/set",
-                        payload = jsonPayload
+                        payload = jsonPayload,
                     )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Wyślij do MQTT")
             }
@@ -256,36 +262,40 @@ fun SmartRoomControllerApp() {
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun ColorPreview(previewColor: Color) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(90.dp)
-            .background(previewColor, RoundedCornerShape(16.dp))
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(90.dp)
+                .background(previewColor, RoundedCornerShape(16.dp)),
     )
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SectionCard(
     title: String,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1D1D1D)
-        ),
-        shape = RoundedCornerShape(18.dp)
+        colors =
+            CardDefaults.cardColors(
+                containerColor = Color(0xFF1D1D1D),
+            ),
+        shape = RoundedCornerShape(18.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
                 text = title,
                 color = Color.White,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
 
             content()
@@ -293,6 +303,7 @@ fun SectionCard(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun MainLedCard(
     ledOn: Boolean,
@@ -304,22 +315,22 @@ fun MainLedCard(
     onBrightnessChange: (Float) -> Unit,
     onRedChange: (Float) -> Unit,
     onGreenChange: (Float) -> Unit,
-    onBlueChange: (Float) -> Unit
+    onBlueChange: (Float) -> Unit,
 ) {
     SectionCard(title = "Ręczne sterowanie LED") {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = if (ledOn) "LED: WŁĄCZONE" else "LED: WYŁĄCZONE",
                 color = Color.White,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             Switch(
                 checked = ledOn,
-                onCheckedChange = onPowerChange
+                onCheckedChange = onPowerChange,
             )
         }
 
@@ -327,135 +338,139 @@ fun MainLedCard(
         Slider(
             value = brightness,
             onValueChange = onBrightnessChange,
-            valueRange = 0f..255f
+            valueRange = 0f..255f,
         )
 
         Text("Czerwony: ${red.toInt()}", color = Color.White)
         Slider(
             value = red,
             onValueChange = onRedChange,
-            valueRange = 0f..255f
+            valueRange = 0f..255f,
         )
 
         Text("Zielony: ${green.toInt()}", color = Color.White)
         Slider(
             value = green,
             onValueChange = onGreenChange,
-            valueRange = 0f..255f
+            valueRange = 0f..255f,
         )
 
         Text("Niebieski: ${blue.toInt()}", color = Color.White)
         Slider(
             value = blue,
             onValueChange = onBlueChange,
-            valueRange = 0f..255f
+            valueRange = 0f..255f,
         )
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SleepModeCard(
     onFullSleep: () -> Unit,
     onReadingLamp: () -> Unit,
-    onAllOff: () -> Unit
+    onAllOff: () -> Unit,
 ) {
     SectionCard(title = "Tryb Sen") {
         Text(
             text = "Jeden klik: łóżko + próg. Ciepłe światło, niska jasność, bez telefonu przy łóżku.",
-            color = Color.LightGray
+            color = Color.LightGray,
         )
 
         Button(
             onClick = onFullSleep,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Tryb Sen — łóżko + próg")
         }
 
         Button(
             onClick = onReadingLamp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Wysuwana lampka do czytania")
         }
 
         Button(
             onClick = onAllOff,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Wszystko OFF")
         }
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun MorningStudioCard(
     onMorning: () -> Unit,
     onStudio: () -> Unit,
-    onNight: () -> Unit
+    onNight: () -> Unit,
 ) {
     SectionCard(title = "Poranek / Studio") {
         Text(
             text = "Docelowo: Tuya, zasilacz, mikrofony, monitory i KRK w bezpiecznej kolejności.",
-            color = Color.LightGray
+            color = Color.LightGray,
         )
 
         Button(
             onClick = onMorning,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Scena Poranek")
         }
 
         Button(
             onClick = onStudio,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Scena Studio")
         }
 
         Button(
             onClick = onNight,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Scena Noc")
         }
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SensorsPreviewCard() {
     SectionCard(title = "Czujniki — podgląd planowany") {
         Text(
             text = "Pokój: 23.8°C / 48%",
-            color = Color.LightGray
+            color = Color.LightGray,
         )
 
         Text(
             text = "Serwer: 39.5°C",
-            color = Color.LightGray
+            color = Color.LightGray,
         )
 
         Text(
             text = "Carolina Reaper — gleba: 620",
-            color = Color.LightGray
+            color = Color.LightGray,
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = "Później te dane przyjdą z MQTT z ESP32 / Arduino.",
-            color = Color(0xFFFFCC66)
+            color = Color(0xFFFFCC66),
         )
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun JsonPreviewCard(jsonPayload: String) {
     SectionCard(title = "JSON payload do MQTT") {
         Text(
             text = jsonPayload,
-            color = Color.LightGray
+            color = Color.LightGray,
         )
     }
 }
@@ -467,154 +482,149 @@ fun buildLedPayload(
     brightness: Int,
     red: Int,
     green: Int,
-    blue: Int
-): String {
-    return """
-        {
-          "mode": "$mode",
-          "zone": "$zone",
-          "power": $power,
-          "brightness": $brightness,
-          "r": $red,
-          "g": $green,
-          "b": $blue
-        }
+    blue: Int,
+): String =
+    """
+    {
+      "mode": "$mode",
+      "zone": "$zone",
+      "power": $power,
+      "brightness": $brightness,
+      "r": $red,
+      "g": $green,
+      "b": $blue
+    }
     """.trimIndent()
-}
 
-fun buildSleepModePayload(): String {
-    return """
-        {
-          "mode": "sleep_full",
-          "zones": {
-            "under_bed": {
-              "power": true,
-              "brightness": 8,
-              "r": 255,
-              "g": 35,
-              "b": 0
-            },
-            "threshold": {
-              "power": true,
-              "brightness": 25,
-              "r": 255,
-              "g": 75,
-              "b": 0
-            },
-            "reading_lamp": {
-              "power": false,
-              "brightness": 0,
-              "r": 0,
-              "g": 0,
-              "b": 0
-            }
-          }
+fun buildSleepModePayload(): String =
+    """
+    {
+      "mode": "sleep_full",
+      "zones": {
+        "under_bed": {
+          "power": true,
+          "brightness": 8,
+          "r": 255,
+          "g": 35,
+          "b": 0
+        },
+        "threshold": {
+          "power": true,
+          "brightness": 25,
+          "r": 255,
+          "g": 75,
+          "b": 0
+        },
+        "reading_lamp": {
+          "power": false,
+          "brightness": 0,
+          "r": 0,
+          "g": 0,
+          "b": 0
         }
+      }
+    }
     """.trimIndent()
-}
 
-fun buildReadingLampPayload(): String {
-    return """
-        {
-          "mode": "reading_lamp",
-          "zones": {
-            "under_bed": {
-              "power": true,
-              "brightness": 8,
-              "r": 255,
-              "g": 35,
-              "b": 0
-            },
-            "threshold": {
-              "power": true,
-              "brightness": 25,
-              "r": 255,
-              "g": 75,
-              "b": 0
-            },
-            "reading_lamp": {
-              "power": true,
-              "brightness": 70,
-              "r": 255,
-              "g": 110,
-              "b": 20
-            }
-          }
+fun buildReadingLampPayload(): String =
+    """
+    {
+      "mode": "reading_lamp",
+      "zones": {
+        "under_bed": {
+          "power": true,
+          "brightness": 8,
+          "r": 255,
+          "g": 35,
+          "b": 0
+        },
+        "threshold": {
+          "power": true,
+          "brightness": 25,
+          "r": 255,
+          "g": 75,
+          "b": 0
+        },
+        "reading_lamp": {
+          "power": true,
+          "brightness": 70,
+          "r": 255,
+          "g": 110,
+          "b": 20
         }
+      }
+    }
     """.trimIndent()
-}
 
-fun buildMorningPayload(): String {
-    return """
+fun buildMorningPayload(): String =
+    """
+    {
+      "mode": "morning",
+      "sequence": [
         {
-          "mode": "morning",
-          "sequence": [
-            {
-              "device": "main_power_supply",
-              "power": true,
-              "delayMs": 0
-            },
-            {
-              "device": "monitors",
-              "power": true,
-              "delayMs": 3000
-            },
-            {
-              "device": "audio_interface_microphones",
-              "power": true,
-              "delayMs": 5000
-            },
-            {
-              "device": "studio_monitors_krk",
-              "power": true,
-              "delayMs": 8000
-            }
-          ],
-          "led": {
-            "power": true,
-            "brightness": 180,
-            "r": 255,
-            "g": 220,
-            "b": 160
-          }
+          "device": "main_power_supply",
+          "power": true,
+          "delayMs": 0
+        },
+        {
+          "device": "monitors",
+          "power": true,
+          "delayMs": 3000
+        },
+        {
+          "device": "audio_interface_microphones",
+          "power": true,
+          "delayMs": 5000
+        },
+        {
+          "device": "studio_monitors_krk",
+          "power": true,
+          "delayMs": 8000
         }
+      ],
+      "led": {
+        "power": true,
+        "brightness": 180,
+        "r": 255,
+        "g": 220,
+        "b": 160
+      }
+    }
     """.trimIndent()
-}
 
-fun buildAllOffPayload(): String {
-    return """
-        {
-          "mode": "all_off",
-          "zones": {
-            "under_bed": {
-              "power": false,
-              "brightness": 0,
-              "r": 0,
-              "g": 0,
-              "b": 0
-            },
-            "threshold": {
-              "power": false,
-              "brightness": 0,
-              "r": 0,
-              "g": 0,
-              "b": 0
-            },
-            "reading_lamp": {
-              "power": false,
-              "brightness": 0,
-              "r": 0,
-              "g": 0,
-              "b": 0
-            },
-            "main_led": {
-              "power": false,
-              "brightness": 0,
-              "r": 0,
-              "g": 0,
-              "b": 0
-            }
-          }
+fun buildAllOffPayload(): String =
+    """
+    {
+      "mode": "all_off",
+      "zones": {
+        "under_bed": {
+          "power": false,
+          "brightness": 0,
+          "r": 0,
+          "g": 0,
+          "b": 0
+        },
+        "threshold": {
+          "power": false,
+          "brightness": 0,
+          "r": 0,
+          "g": 0,
+          "b": 0
+        },
+        "reading_lamp": {
+          "power": false,
+          "brightness": 0,
+          "r": 0,
+          "g": 0,
+          "b": 0
+        },
+        "main_led": {
+          "power": false,
+          "brightness": 0,
+          "r": 0,
+          "g": 0,
+          "b": 0
         }
+      }
+    }
     """.trimIndent()
-}
