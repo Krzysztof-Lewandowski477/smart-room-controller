@@ -99,3 +99,103 @@ Auto-wysyłanie działa bez przycisku.
 RGB/brightness działa logicznie.
 Problem z pełną taśmą wynika z zasilania LED z płytki ESP — potrzebne osobne 5V i wspólna masa.
 
+
+## Aktualny status
+
+Projekt jest w fazie budowy MVP.
+
+Działa już podstawowy łańcuch komunikacji:
+
+```text
+Android app
+→ MQTT
+→ Node-RED
+→ ESP32
+→ WS2812B LED
+```
+
+Aktualnie testowane są:
+
+```text
+- sterowanie LED z aplikacji Android
+- tryby scen: Noc, Studio, OFF, ręczny RGB
+- komunikacja MQTT
+- ESP32 jako sterownik LED
+- przygotowanie drugiego modułu ESP32 pod czujnik pochyłu łóżka
+```
+
+## Główne funkcje
+
+Planowane i częściowo wdrożone funkcje:
+
+```text
+- sterowanie LED WS2812B z aplikacji Android
+- tryb nocny z ciepłym światłem
+- tryb studio
+- automatyczne wyłączanie wybranych urządzeń przez Tuya
+- czujnik pochyłu / ruchu szafołóżka
+- przyszła integracja wentylatorów z czujnikiem temperatury
+- rozbudowa o kolejne strefy LED: biurko, łóżko, próg
+```
+
+## Technologie
+
+```text
+Android Kotlin
+Jetpack Compose
+MQTT
+Node-RED
+Mosquitto
+ESP32 / Arduino IDE
+FastLED
+WS2812B
+Proxmox / Debian VM
+```
+
+## Architektura
+
+```text
+[Android App]
+     |
+     v
+[MQTT Broker / Mosquitto]
+     |
+     v
+[Node-RED]
+     |
+     v
+[ESP32]
+     |
+     v
+[WS2812B LED / sensors / devices]
+```
+
+## Plan najbliższych prac
+
+```text
+1. Stabilizacja komunikacji Android → MQTT → ESP32
+2. Test czujnika pochyłu łóżka na MPU6050
+3. Dodanie komunikatów MQTT dla stanu łóżka
+4. Podział LED na strefy
+5. Dodanie zasilaczy 5V 30A i zabezpieczeń bezpiecznikami
+6. Przygotowanie lokalnej strony prezentacyjnej projektu
+7. Publikacja demo portfolio
+```
+
+## Bezpieczeństwo
+
+Projekt obejmuje pracę z zasilaczami, prądem stałym oraz urządzeniami podłączanymi do sieci 230V. Elementy 230V nie są sterowane bezpośrednio przez ESP32. Do sterowania urządzeniami sieciowymi używane będą gotowe moduły, np. wtyczki Tuya.
+
+W projekcie nie należy publikować:
+
+```text
+- haseł Wi-Fi
+- danych logowania MQTT
+- adresów publicznych
+- plików local.properties
+- konfiguracji prywatnych urządzeń
+```
+
+## Status projektu
+
+Projekt jest rozwijany jako praktyczne demo automatyzacji pokoju oraz element portfolio technicznego.
