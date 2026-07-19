@@ -136,7 +136,22 @@ fun SmartRoomControllerApp() {
                 text = mqttStatus,
                 color = if (mqttStatus.contains("połączono")) Color.Green else Color.Yellow,
             )
-
+            BedLedControlCard(
+                mqttManager = mqttManager,
+                mqttConnected =
+                    mqttStatus.contains(
+                        "połączono",
+                        ignoreCase = true,
+                    ),
+            )
+            DeskPowerCard(
+                mqttManager = mqttManager,
+                mqttConnected =
+                    mqttStatus.contains(
+                        "połączono",
+                        ignoreCase = true,
+                    ),
+            )
             ColorPreview(previewColor = previewColor)
 
             MainLedCard(
@@ -361,6 +376,119 @@ fun MainLedCard(
             onValueChange = onBlueChange,
             valueRange = 0f..255f,
         )
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun BedLedControlCard(
+    mqttManager: MqttManager,
+    mqttConnected: Boolean,
+) {
+    SectionCard(title = "LED łóżka") {
+        Text(
+            text =
+                if (mqttConnected) {
+                    "Sterowanie ESP32-S3 przez MQTT"
+                } else {
+                    "Brak połączenia z MQTT"
+                },
+            color =
+                if (mqttConnected) {
+                    Color.LightGray
+                } else {
+                    Color(0xFFFFCC66)
+                },
+        )
+
+        Button(
+            onClick = {
+                mqttManager.publish(
+                    topic = "smartroom/bed/led/set",
+                    payload = "auto",
+                )
+            },
+            enabled = mqttConnected,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("AUTO — reaguj na łóżko")
+        }
+
+        Button(
+            onClick = {
+                mqttManager.publish(
+                    topic = "smartroom/bed/led/set",
+                    payload = "night",
+                )
+            },
+            enabled = mqttConnected,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("ŚWIATŁO NOCNE")
+        }
+
+        Button(
+            onClick = {
+                mqttManager.publish(
+                    topic = "smartroom/bed/led/set",
+                    payload = "off",
+                )
+            },
+            enabled = mqttConnected,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("WYŁĄCZ LED")
+        }
+    }
+}
+
+@Suppress("ktlint:standard:function-naming")
+@Composable
+fun DeskPowerCard(
+    mqttManager: MqttManager,
+    mqttConnected: Boolean,
+) {
+    SectionCard(title = "Listwa przy biurku") {
+        Text(
+            text =
+                if (mqttConnected) {
+                    "Athom Smart Plug — MQTT przez Node-RED"
+                } else {
+                    "Brak połączenia z MQTT"
+                },
+            color =
+                if (mqttConnected) {
+                    Color.LightGray
+                } else {
+                    Color(0xFFFFCC66)
+                },
+        )
+
+        Button(
+            onClick = {
+                mqttManager.publish(
+                    topic = "smartroom/power/desk/set",
+                    payload = "on",
+                )
+            },
+            enabled = mqttConnected,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("LISTWA BIURKO — WŁĄCZ")
+        }
+
+        Button(
+            onClick = {
+                mqttManager.publish(
+                    topic = "smartroom/power/desk/set",
+                    payload = "off",
+                )
+            },
+            enabled = mqttConnected,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("LISTWA BIURKO — WYŁĄCZ")
+        }
     }
 }
 
