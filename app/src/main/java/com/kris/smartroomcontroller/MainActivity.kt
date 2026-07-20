@@ -35,6 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
+private const val LED_MODE_TOPIC = "smartroom/bed/led/set"
+private const val LED_BRIGHTNESS_TOPIC = "smartroom/bed/led/brightness"
+private const val LED_COLOR_TOPIC = "smartroom/bed/led/color"
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,23 +100,30 @@ fun SmartRoomControllerApp() {
             green = green.toInt(),
             blue = blue.toInt(),
         )
-    var firstAutoSendSkipped by remember { mutableStateOf(false) }
 
-    LaunchedEffect(jsonPayload) {
-        if (!firstAutoSendSkipped) {
-            firstAutoSendSkipped = true
-            return@LaunchedEffect
-        }
-
+    LaunchedEffect(brightness) {
         if (!mqttStatus.contains("połączono", ignoreCase = true)) {
             return@LaunchedEffect
         }
 
-        delay(350)
+        delay(200)
 
         mqttManager.publish(
-            topic = "home/room/led/set",
-            payload = jsonPayload,
+            topic = LED_BRIGHTNESS_TOPIC,
+            payload = brightness.toInt().toString(),
+        )
+    }
+
+    LaunchedEffect(red, green, blue) {
+        if (!mqttStatus.contains("połączono", ignoreCase = true)) {
+            return@LaunchedEffect
+        }
+
+        delay(200)
+
+        mqttManager.publish(
+            topic = LED_COLOR_TOPIC,
+            payload = "${red.toInt()},${green.toInt()},${blue.toInt()}",
         )
     }
 
@@ -265,8 +276,13 @@ fun SmartRoomControllerApp() {
             Button(
                 onClick = {
                     mqttManager.publish(
-                        topic = "home/room/led/set",
-                        payload = jsonPayload,
+                        topic = LED_BRIGHTNESS_TOPIC,
+                        payload = brightness.toInt().toString(),
+                    )
+
+                    mqttManager.publish(
+                        topic = LED_COLOR_TOPIC,
+                        payload = "${red.toInt()},${green.toInt()},${blue.toInt()}",
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
